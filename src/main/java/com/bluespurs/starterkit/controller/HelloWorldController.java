@@ -82,9 +82,6 @@ public class HelloWorldController {
             float[]    bestBuyPrice     = new float[1];
             float[]    walmartPrice     = new float[1];;
         try {
-            
-            //The Java.net.URL handle tcp/ip connection and errors are catched below
-            //
 
             bestBuyXml = createXmlString("http://api.bestbuy.com/v1/products((search="+name+"))?show=name,salePrice&sort=salePrice&format=xml&apiKey=pfe9fpy68yg28hvvma49sc89");
 
