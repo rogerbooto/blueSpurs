@@ -1,0 +1,113 @@
+group 'com.bluespurs.starterkit'
+version '1.0.0'
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'org.springframework.boot:spring-boot-gradle-plugin:1.3.2.RELEASE'
+        classpath 'org.liquibase:liquibase-gradle-plugin:1.2.1'
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'eclipse'
+apply plugin: 'spring-boot'
+apply plugin: 'liquibase'
+apply plugin: 'war'
+
+// Load the properties file.
+Properties props = new Properties();
+props.load(new FileReader(projectDir.getAbsolutePath() + '/src/main/resources/application.properties'))
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+war {
+    baseName = 'MySpringProject'
+}
+
+configurations {
+    providedRuntime
+}
+
+ext {
+    liquibaseHibernateVersion = '3.5'
+    gsonVersion = '2.5'
+    guavaVersion = '19.0'
+    gsonVersion = '2.6.1'
+
+    hibernateEntityManagerVersion = '4.3.11.Final'
+    hibernateValidatorVersion = '5.2.2.Final'
+
+    hamcrestVersion = '1.3'
+    junitVersion = '4.12'
+    mockitoVersion = '1.10.19'
+    h2databaseVersion = '1.4.191'
+    restAssuredVersion = '2.8.0'
+    jsonPathAssertVersion = '0.8.1'
+}
+
+dependencies {
+    // Spring Boot
+    compile 'org.springframework.boot:spring-boot-devtools',
+            'org.springframework.boot:spring-boot-starter-web',
+            'org.springframework.boot:spring-boot-starter-hateoas',
+            'org.springframework.boot:spring-boot-starter-data-jpa'
+    providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+
+    // JPA Provider
+    compile "org.hibernate:hibernate-entitymanager:$hibernateEntityManagerVersion",
+            "org.hibernate:hibernate-validator:$hibernateValidatorVersion"
+
+    // Liquibase integration
+    compile("org.liquibase.ext:liquibase-hibernate4:$liquibaseHibernateVersion") {
+        exclude group: 'org.hibernate.javax.persistence'
+    }
+
+    // Google libraries
+    compile "com.google.code.gson:gson:$gsonVersion",
+            "com.google.guava:guava:$guavaVersion"
+
+    // Database driver
+    runtime "com.h2database:h2:$h2databaseVersion"
+
+    // Unit & Integration Testing
+    testCompile "org.hamcrest:hamcrest-all:$hamcrestVersion",
+            "junit:junit:$junitVersion",
+            "org.mockito:mockito-core:$mockitoVersion",
+            "com.jayway.jsonpath:json-path-assert:$jsonPathAssertVersion"
+
+    testCompile 'org.springframework.boot:spring-boot-starter-test'
+}
+
+diffChangeLog.dependsOn classes
+
+bootRepackage {
+    excludeDevtools = true
+    dependsOn test
+}
+
+liquibase {
+    activities {
+        main {
+            changeLogFile 'src/main/resources/db-changelog.xml'
+            classpath sourceSets.main.runtimeClasspath.asPath
+            url props['db.url']
+            referenceUrl String.format('hibernate:spring:%s?dialect=%s', props['base-package'], props['db.dialect'])
+            username props['db.username']
+            password props['db.password']
+        }
+    }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = 2.11
+}
